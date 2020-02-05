@@ -49,6 +49,7 @@ class Preprocessor:
     def split(self, input_df, test_size=0.3, random_state=3):
         train, test = train_test_split(input_df, test_size=test_size, random_state=random_state)
         return train, test
+### no used cases
 
     def ohe_encode(self, input_df, categorical_columns, ordinal_columns):
 

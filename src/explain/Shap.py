@@ -32,6 +32,7 @@ class Shap:
         shap.force_plot(self.expected_value,
                         self.shap_values[:index, :],
                         data,
+                        matplotlib=True,
                         link='logit')
 
     def get_shap_values(self):

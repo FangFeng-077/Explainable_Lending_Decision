@@ -88,15 +88,11 @@ def preprocessing(df, config):
 def build_model(solver, X_train, y_train,):
     if solver == 'Random Forest':
         print("training random forest")
-        # Import module for fitting
-        rfmodel = RandomForestClassifier(
-            n_estimators=80, max_depth=50  # class_weight= {0:.1, 1:.9},
-        )
+        from model.RandomForest import RandomForest
+        random_forest = RandomForest()
+        random_forest.fit(X_train, y_train)
+        return random_forest.get_model()
 
-        # Fit the model using the training data
-        rfmodel.fit(X_train, y_train)
-
-        return rfmodel
 
     if solver == 'XGBoost':
         print("training xgboost")
@@ -178,39 +174,52 @@ def main():
     X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
 
     # select model
-    option = st.selectbox(
+    model_selected = st.selectbox(
         'Select model',
         ('Random Forest', 'XGBoost', 'Neural Network'),
-        index=2 # default to neural network
+        index=1 # default to neural network
     )
 
-    st.write('Fit model:', option)
+    st.write('Fit model:', model_selected)
 
     # model
-    model = build_model(option, X_train, y_train)
+    model = build_model(model_selected, X_train, y_train)
 
-    # show only one category or not
-    category = 0
-    if option is 'XGBoost':
+    # show only one category or not, 1 means paid
+    category = 1
+    if model_selected is 'XGBoost':
         category = None
 
-    # explain
-    shap = Shap(option, model, X_train[:5000], category=category)
+    # explain summary
+    shap = Shap(model_selected, model, X_train[:5000], category=category)
     shap.explain(X_test[:5000])
     shap.plot_summary(X_test[:5000])
     st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
-    # explain first row
-    index = 10
-    shap.plot_force(X_test_disp.iloc[index, :], index)
-    st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+    # index input
+    index = st.number_input("index: ", value=10, format="%d")
+    if index > 0:
 
-    # print shap values
-    shap_values = shap.get_shap_values()
-    indexer = shap_values[index]
-    st.write(indexer)
+        # user data
+        data = X_test_disp.iloc[index, :]
+        df_plot = X_test_disp.iloc[:index, :]
+        table = st.table(data)
 
-    # TODO format data to UI required
+        # explain button
+        explain_button = st.button('Explanation')
+
+        if explain_button:
+            table.add_column()
+            shap.plot_force(data, index)
+            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+            df_plot
+            shap.plot_forces(df_plot, index)
+            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+
+            # print shap values
+            shap_values = shap.get_shap_values()
+            indexer = shap_values[index]
+            st.write(indexer)
 
 
 if __name__ == '__main__':
