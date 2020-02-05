@@ -67,9 +67,9 @@ def preprocessing(df, config):
     df = preprocessor.select(df, useful_columns)
 
     df_disp = df.copy()
-    # visualize processed data
-    st.subheader('Sampled data')
-    st.write(df)
+    # # visualize processed data
+    # st.subheader('Sampled data')
+    # st.write(df)
 
     # normalize
     df = preprocessor.normalize(df, normalize_columns)
@@ -84,25 +84,33 @@ def preprocessing(df, config):
 
     return df, df_disp
 
+@st.cache(suppress_st_warning=True,allow_output_mutation=True)
+def build_model(X_train, y_train):
 
-def build_model(solver, X_train, y_train,):
-    if solver == 'Random Forest':
+    # select model
+    model_selected = st.sidebar.selectbox(
+        'Select model',
+        ('Random Forest', 'XGBoost', 'Neural Network'),
+        index=1 # default to neural network
+    )
+    print(model_selected)
+
+    model = None
+
+    if model_selected == 'Random Forest':
         print("training random forest")
         from model.RandomForest import RandomForest
-        random_forest = RandomForest()
-        random_forest.fit(X_train, y_train)
-        return random_forest.get_model()
+        model = RandomForest()
+        model.fit(X_train, y_train)
+        model = model.get_model()
 
-
-    if solver == 'XGBoost':
+    if model_selected == 'XGBoost':
         print("training xgboost")
-        xgc = xgb.XGBClassifier(n_estimators=500, max_depth=5, base_score=0.5,
+        model = xgb.XGBClassifier(n_estimators=500, max_depth=5, base_score=0.5,
                                 objective='binary:logistic', random_state=42)
-        xgc.fit(X_train, y_train)
+        model.fit(X_train, y_train)
 
-        return xgc
-
-    if solver == 'Neural Network':
+    if model_selected == 'Neural Network':
         # TODO neural network
 
         from keras.layers import Input, Dense, Dropout
@@ -123,8 +131,19 @@ def build_model(solver, X_train, y_train,):
 
         model.fit(X_train.values, y_train.values, epochs=20, verbose=0)
 
-        return model
+    return model, model_selected
 
+@st.cache(suppress_st_warning=True)
+def persist_data(data):
+    for k, v in data.items():
+        if isinstance(v, str):
+            new_v = st.sidebar.selectbox('Select {0}'.format(k), options=[v], index=0)
+        else:
+            new_v = st.sidebar.slider("Select {0}".format(k), min_value=v * 0.5, max_value=v * 1.5,
+                                      value=v * 1.0)
+        if new_v:
+            data[k] = v
+    return data
 
 def main():
     parser = argparse.ArgumentParser()
@@ -173,48 +192,43 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
 
-    # select model
-    model_selected = st.selectbox(
-        'Select model',
-        ('Random Forest', 'XGBoost', 'Neural Network'),
-        index=1 # default to neural network
-    )
-
-    st.write('Fit model:', model_selected)
+    # streamlit
+    st.sidebar.markdown('# model')
 
     # model
-    model = build_model(model_selected, X_train, y_train)
-
-    # show only one category or not, 1 means paid
-    category = 1
-    if model_selected is 'XGBoost':
-        category = None
-
-    # explain summary
-    shap = Shap(model_selected, model, X_train[:5000], category=category)
-    shap.explain(X_test[:5000])
-    shap.plot_summary(X_test[:5000])
-    st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+    model, model_selected = build_model(X_train, y_train)
 
     # index input
-    index = st.number_input("index: ", value=10, format="%d")
+    index = st.sidebar.number_input("Select the user index: ", value=10, format="%d")
     if index > 0:
+        print('index')
 
         # user data
-        data = X_test_disp.iloc[index, :]
-        df_plot = X_test_disp.iloc[:index, :]
-        table = st.table(data)
+        data = X_test_disp.iloc[index, :].copy()
+        # st.table(data)
+
+        persist_data(data)
 
         # explain button
-        explain_button = st.button('Explanation')
+        explain_button = st.sidebar.button('Explanation')
 
         if explain_button:
-            table.add_column()
+
+            # show only one category or not, 1 means paid
+            category = 1
+            if model_selected is 'XGBoost':
+                category = None
+
+            # explain summary
+            shap = Shap(model_selected, model, X_train[:5000], category=category)
+            shap.explain(X_test[:5000])
+            shap.plot_summary(X_test[:5000])
+            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+
             shap.plot_force(data, index)
             st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
-            df_plot
-            shap.plot_forces(df_plot, index)
-            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+            # shap.plot_forces(data, index)
+            # st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
             # print shap values
             shap_values = shap.get_shap_values()
