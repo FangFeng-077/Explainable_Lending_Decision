@@ -91,7 +91,7 @@ def build_model(X_train, y_train):
     model_selected = st.sidebar.selectbox(
         'Select model',
         ('Random Forest', 'XGBoost', 'Neural Network'),
-        index=1 # default to neural network
+        index=2 # default to neural network
     )
     print(model_selected)
 
@@ -156,13 +156,6 @@ def main():
     )
 
     parser.add_argument(
-        "--solver",
-        action="store",
-        default="Random Forest",
-        help="Select solver from: (1) 'All' (2) 'Random Forest' (3) 'Embeddings' (4) 'Logistic Regression' ",
-    )
-
-    parser.add_argument(
         "--encode",
         action="store",
         default="label",
@@ -193,7 +186,7 @@ def main():
     X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
 
     # streamlit
-    st.sidebar.markdown('# model')
+    st.sidebar.markdown('# Model')
 
     # model
     model, model_selected = build_model(X_train, y_train)
@@ -216,13 +209,15 @@ def main():
 
             # show only one category or not, 1 means paid
             category = 1
-            if model_selected is 'XGBoost':
+            if model_selected in ['XGBoost', 'Neural Network']:
                 category = None
 
+            X_test = X_test[:500].reset_index(drop=True).values
+            background_data = X_train[:5000].reset_index(drop=True)
             # explain summary
-            shap = Shap(model_selected, model, X_train[:5000], category=category)
-            shap.explain(X_test[:5000])
-            shap.plot_summary(X_test[:5000])
+            shap = Shap(model_selected, model, background_data, category=category)
+            shap.explain(X_test)
+            shap.plot_summary(X_test)
             st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
             shap.plot_force(data, index)
