@@ -1,0 +1,8 @@
+data/processed/cleaned_ohe_normalized.csv
+src/model/__pycache__
+src/explain/__pycache__
+src/util/__pycache__
+.DS_store
+.idea
+.ipynb_checkpoints/
+scripts/.ipynb_checkpoints
