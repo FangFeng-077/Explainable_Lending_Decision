@@ -3,7 +3,8 @@ import shap
 class Shap:
     def __init__(self, model_type, model, background=None, category=None):
         shap.initjs()
-        if model_type == 'Neural Network':
+        self.model_type = model_type
+        if self.model_type == 'Neural Network':
             self.explainer = shap.DeepExplainer(model, [background])
         else:
             self.explainer = shap.TreeExplainer(model)
@@ -14,15 +15,25 @@ class Shap:
     def explain(self, data):
         self.shap_values = self.explainer.shap_values(data)
         self.expected_value = self.explainer.expected_value
-        if self.category is not None:
-            self.shap_values = self.shap_values[self.category]
-            self.expected_value = self.explainer.expected_value[self.category]
+
+        # show only one category or not, 1 means paid
+        if self.model_type == 'Random Forest':
+            self.shap_values = self.shap_values[1]
+            self.expected_value = self.explainer.expected_value[1]
+
+        # neural network
+        if self.model_type == 'Neural Network':
+            self.shap_values = self.shap_values[0]
+            self.expected_value = self.explainer.expected_value[0]
 
     def plot_summary(self, data):
         shap.summary_plot(self.shap_values, data, plot_type="bar")
 
     def plot_force(self, data, index):
-        if not self.expected_value or not self.shap_values:
+        print(self.shap_values)
+        if self.expected_value is None:
+            return
+        if self.shap_values is None:
             return
         shap.force_plot(self.expected_value,
                         self.shap_values[index, :],
@@ -31,7 +42,9 @@ class Shap:
                         link='logit')
 
     def plot_forces(self, data, index):
-        if not self.expected_value or not self.shap_values:
+        if self.expected_value is None:
+            return
+        if self.shap_values is None:
             return
         shap.force_plot(self.expected_value,
                         self.shap_values[:index, :],

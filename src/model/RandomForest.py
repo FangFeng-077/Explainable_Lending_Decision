@@ -10,5 +10,8 @@ class RandomForest:
     def fit(self, X_train, y_train):
         self.rfmodel.fit(X_train, y_train)
 
+    def predict(self, X_test, y_test):
+        self.rfmodel.predict(X_test, y_test)
+
     def get_model(self):
         return self.rfmodel

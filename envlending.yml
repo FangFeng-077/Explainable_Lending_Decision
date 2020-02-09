@@ -1,7 +1,0 @@
-name: smallone
-channels:
-  - defaults
-dependencies:
-  - pandas
-prefix: /opt/anaconda3/envs/smallone
-

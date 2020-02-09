@@ -1,7 +1,7 @@
 import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-from util.Preprocessing import Preprocessor
+from util.Preprocessor import Preprocessor
 from explain.Shap import Shap
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -66,10 +66,8 @@ def preprocessing(df, config):
     # select useful columns
     df = preprocessor.select(df, useful_columns)
 
+    # visualize data
     df_disp = df.copy()
-    # # visualize processed data
-    # st.subheader('Sampled data')
-    # st.write(df)
 
     # normalize
     df = preprocessor.normalize(df, normalize_columns)
@@ -93,7 +91,6 @@ def build_model(X_train, y_train):
         ('Random Forest', 'XGBoost', 'Neural Network'),
         index=2 # default to neural network
     )
-    print(model_selected)
 
     model = None
 
@@ -134,7 +131,7 @@ def build_model(X_train, y_train):
     return model, model_selected
 
 @st.cache(suppress_st_warning=True)
-def persist_data(data):
+def update_feature(data):
     for k, v in data.items():
         if isinstance(v, str):
             new_v = st.sidebar.selectbox('Select {0}'.format(k), options=[v], index=0)
@@ -166,7 +163,7 @@ def main():
         "--sample",
         action="store",
         default="undersample",
-        help="For imbalanced classes: (1) 'undersample' (2) 'oversample' (3) 'None' ",
+        help="Select sample type from: (1) 'undersample' (2) 'oversample' ",
     )
 
     args = parser.parse_args()
@@ -193,31 +190,31 @@ def main():
 
     # index input
     index = st.sidebar.number_input("Select the user index: ", value=10, format="%d")
+
     if index > 0:
-        print('index')
 
         # user data
         data = X_test_disp.iloc[index, :].copy()
         # st.table(data)
 
-        persist_data(data)
+        update_feature(data)
 
         # explain button
         explain_button = st.sidebar.button('Explanation')
 
         if explain_button:
 
-            # show only one category or not, 1 means paid
-            category = 1
-            if model_selected in ['XGBoost', 'Neural Network']:
-                category = None
+            background_data = X_train[:5000].copy()
+            explain_data = X_test[:500].copy()
 
-            X_test = X_test[:500].reset_index(drop=True).values
-            background_data = X_train[:5000].reset_index(drop=True)
+            if model_selected == 'Neural Network':
+                background_data = background_data.reset_index(drop=True).to_numpy()
+                explain_data = explain_data.reset_index(drop=True).to_numpy()
+
             # explain summary
-            shap = Shap(model_selected, model, background_data, category=category)
-            shap.explain(X_test)
-            shap.plot_summary(X_test)
+            shap = Shap(model_selected, model, background_data)
+            shap.explain(explain_data)
+            shap.plot_summary(explain_data)
             st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
             shap.plot_force(data, index)
