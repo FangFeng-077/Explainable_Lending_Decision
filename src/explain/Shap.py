@@ -30,7 +30,6 @@ class Shap:
         shap.summary_plot(self.shap_values, data, plot_type="bar")
 
     def plot_force(self, data, index):
-        print(self.shap_values)
         if self.expected_value is None:
             return
         if self.shap_values is None:
@@ -50,6 +49,14 @@ class Shap:
                         self.shap_values[:index, :],
                         data,
                         link='logit')
+
+    def plot_image(self, data, index):
+        if self.expected_value is None:
+            return
+        if self.shap_values is None:
+            return
+        shap.image_plot(self.shap_values[index, :], data)
+
 
     def get_shap_values(self):
         return self.shap_values

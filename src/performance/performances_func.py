@@ -1,34 +1,41 @@
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
+import numpy as np
 from sklearn import metrics
+import pandas as pd
+
 
 def get_metrics(true_labels, predicted_labels):
-    print('Accuracy:', np.round(
+    accuracy = np.round(
         metrics.accuracy_score(true_labels,
                                predicted_labels),
-        4))
-    print('Precision:', np.round(
+        4)
+    prec = np.round(
         metrics.precision_score(true_labels,
                                 predicted_labels,
                                 average='weighted'),
-        4))
-    print('Recall:', np.round(
+        4)
+    recall = np.round(
         metrics.recall_score(true_labels,
                              predicted_labels,
                              average='weighted'),
-        4))
-    print('F1 Score:', np.round(
+        4)
+    f1 = np.round(
         metrics.f1_score(true_labels,
                          predicted_labels,
                          average='weighted'),
-        4))
+        4)
 
+    df = pd.DataFrame([[accuracy, prec, recall, f1]], index=['performance'],
+                      columns=["accuracy", "precision", "recall", "f1_score"])
+    print(df)
+    return df
 
 def display_classification_report(true_labels, predicted_labels, classes=[1, 0]):
     report = metrics.classification_report(y_true=true_labels,
                                            y_pred=predicted_labels,
                                            labels=classes)
-    print(report)
+    return report
 
 
 def display_confusion_matrix(true_labels, predicted_labels, classes=[1, 0]):
@@ -42,7 +49,7 @@ def display_confusion_matrix(true_labels, predicted_labels, classes=[1, 0]):
                                                   labels=level_labels),
                             index=pd.MultiIndex(levels=[['Actual:'], classes],
                                                 labels=level_labels))
-    print(cm_frame)
+    return cm_frame
 
 
 def display_model_performance_metrics(true_labels, predicted_labels, classes=[1, 0]):
@@ -57,3 +64,8 @@ def display_model_performance_metrics(true_labels, predicted_labels, classes=[1,
     print('-' * 30)
     display_confusion_matrix(true_labels=true_labels, predicted_labels=predicted_labels,
                              classes=classes)
+
+
+def predict_labels(model, X, y):
+    y_pred = pd.Series(model.predict(X).ravel(), index=y.index)
+    return y_pred

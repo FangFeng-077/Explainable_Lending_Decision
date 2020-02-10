@@ -1,11 +1,12 @@
 import streamlit as st
-from sklearn.ensemble import RandomForestClassifier
-import xgboost as xgb
+from model.RandomForest import RandomForest
+from model.XGBoost import XGBoost
+from model.NeuralNetwork import NeuralNetwork
 from util.Preprocessor import Preprocessor
 from explain.Shap import Shap
 from sklearn.model_selection import train_test_split
-import pandas as pd
 import argparse
+from performance.performances_func import *
 import os
 
 st.title('Explainable Lending Decision')
@@ -17,10 +18,12 @@ DATE_COLUMN = 'date/time'
 
 @st.cache
 def load_data(path, nrows=None):
+    print('load raw data')
     data = pd.read_csv(path, nrows=nrows)
     return data
 
 
+@st.cache()
 def preprocessing(df, config):
     print('start preprocessing')
     useful_columns = [
@@ -80,57 +83,52 @@ def preprocessing(df, config):
         # label encode
         df = preprocessor.label_encode(df, categorical_columns)
 
-    return df, df_disp
+    # split data
+    y = df['Status']
+    X = df.drop(['Status'], axis=1)
+    y_disp = df_disp['Status']
+    X_disp = df_disp.drop(['Status'], axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
 
-@st.cache(suppress_st_warning=True,allow_output_mutation=True)
+    return X_train, X_test, y_train, y_test, X_train_disp, X_test_disp, y_train_disp, y_test_disp
+
+
 def build_model(X_train, y_train):
+    print('build model')
 
     # select model
     model_selected = st.sidebar.selectbox(
         'Select model',
         ('Random Forest', 'XGBoost', 'Neural Network'),
-        index=2 # default to neural network
+        index=1 # default to neural network
     )
 
     model = None
 
     if model_selected == 'Random Forest':
         print("training random forest")
-        from model.RandomForest import RandomForest
         model = RandomForest()
-        model.fit(X_train, y_train)
-        model = model.get_model()
 
     if model_selected == 'XGBoost':
         print("training xgboost")
-        model = xgb.XGBClassifier(n_estimators=500, max_depth=5, base_score=0.5,
-                                objective='binary:logistic', random_state=42)
-        model.fit(X_train, y_train)
+        model = XGBoost()
 
     if model_selected == 'Neural Network':
-        # TODO neural network
+        print("training Neural Network")
+        model = NeuralNetwork()
 
-        from keras.layers import Input, Dense, Dropout
-        from keras.models import Model
+    model.fit(X_train, y_train)
 
-        n_features = X_train.shape[1]
-        inputs = Input(shape=(n_features,))
-        print(inputs)
-        dense1 = Dense(32, activation='relu')(inputs)
-        dropout1 = Dropout(0.2)(dense1)
-        dense2 = Dense(32, activation='relu')(dropout1)
-        dropout2 = Dropout(0.2)(dense2)
-        dense3 = Dense(32, activation="relu")(dropout2)
-        dropout3 = Dropout(0.2)(dense3)
-        outputs = Dense(1, activation='sigmoid')(dropout3)
-        model = Model(inputs=[inputs], outputs=[outputs])
-        model.compile(loss='binary_crossentropy', optimizer='adam')
+    return model.get_model(), model.get_title()
 
-        model.fit(X_train.values, y_train.values, epochs=20, verbose=0)
 
-    return model, model_selected
+@st.cache()
+def load_user_data(index, data):
+    print('load user data')
+    return data.iloc[index, :].copy()
 
-@st.cache(suppress_st_warning=True)
+
 def update_feature(data):
     for k, v in data.items():
         if isinstance(v, str):
@@ -141,6 +139,7 @@ def update_feature(data):
         if new_v:
             data[k] = v
     return data
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -172,60 +171,63 @@ def main():
     df_raw = load_data(args.data)[:1000]
 
     # preprocess
-    df, df_disp = preprocessing(df_raw, args)
-
-    # split data
-    y = df['Status']
-    X = df.drop(['Status'], axis=1)
-    y_disp = df_disp['Status']
-    X_disp = df_disp.drop(['Status'], axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
+    X_train, X_test, y_train, y_test, X_train_disp, X_test_disp, y_train_disp, y_test_disp = preprocessing(df_raw, args)
 
     # streamlit
     st.sidebar.markdown('# Model')
 
     # model
-    model, model_selected = build_model(X_train, y_train)
+    model, title = build_model(X_train, y_train)
+
+    # prediction
+    y_pred = predict_labels(model, X_test, y_test)
+
+    # get performace
+    performance = get_metrics(y_test, y_pred)
+
+    st.subheader('model performance')
+    st.table(performance)
 
     # index input
-    index = st.sidebar.number_input("Select the user index: ", value=10, format="%d")
+    # index = st.sidebar.number_input("Select the user index: ", value=10, format="%d")
 
-    if index > 0:
+    # if index > 0:
+    index = 10
 
-        # user data
-        data = X_test_disp.iloc[index, :].copy()
-        # st.table(data)
+    # user data
+    data = load_user_data(index, X_test_disp)
+    # st.table(data)
 
-        update_feature(data)
+    update_feature(data)
 
-        # explain button
-        explain_button = st.sidebar.button('Explanation')
+    # explain button
+    explain_button = st.sidebar.button('Explanation')
 
-        if explain_button:
+    if explain_button:
 
-            background_data = X_train[:5000].copy()
-            explain_data = X_test[:500].copy()
+        background_data = X_train[:5000].copy()
+        explain_data = X_test[:500].copy()
 
-            if model_selected == 'Neural Network':
-                background_data = background_data.reset_index(drop=True).to_numpy()
-                explain_data = explain_data.reset_index(drop=True).to_numpy()
+        if title == 'Neural Network':
+            background_data = background_data.reset_index(drop=True).to_numpy()
+            explain_data = explain_data.reset_index(drop=True).to_numpy()
 
-            # explain summary
-            shap = Shap(model_selected, model, background_data)
-            shap.explain(explain_data)
-            shap.plot_summary(explain_data)
-            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+        # explain summary
+        shap = Shap(title, model, background_data)
+        shap.explain(explain_data)
+        shap.plot_summary(explain_data)
+        st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
-            shap.plot_force(data, index)
-            st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
-            # shap.plot_forces(data, index)
-            # st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+        shap.plot_force(data, index)
+        st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
 
-            # print shap values
-            shap_values = shap.get_shap_values()
-            indexer = shap_values[index]
-            st.write(indexer)
+        # shap.plot_image(data, index)
+        # st.pyplot(bbox_inches='tight', dpi=300, pad_inches=0)
+
+        # print shap values
+        shap_values = shap.get_shap_values()
+        indexer = shap_values[index]
+        st.write(indexer)
 
 
 if __name__ == '__main__':
