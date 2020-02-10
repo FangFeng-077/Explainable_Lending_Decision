@@ -6,22 +6,16 @@ from util.Preprocessor import Preprocessor
 from explain.Shap import Shap
 from sklearn.model_selection import train_test_split
 import argparse
-from performance.performances_func import *
+from util.performances_func import *
 import os
 
 st.title('Explainable Lending Decision')
-
-
-DATE_COLUMN = 'date/time'
-# DATA_URL = ('https://s3-us-west-2.amazonaws.com/streamlit-demo-data/uber-raw-data-sep14.csv.gz')
-
 
 @st.cache
 def load_data(path, nrows=None):
     print('load raw data')
     data = pd.read_csv(path, nrows=nrows)
     return data
-
 
 @st.cache()
 def preprocessing(df, config):
@@ -86,10 +80,13 @@ def preprocessing(df, config):
     # split data
     y = df['Status']
     X = df.drop(['Status'], axis=1)
+    X_train, X_test, \
+    y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     y_disp = df_disp['Status']
     X_disp = df_disp.drop(['Status'], axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    X_train_disp, X_test_disp, y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2)
+    X_train_disp, X_test_disp, \
+    y_train_disp, y_test_disp = train_test_split(X_disp, y_disp, test_size=0.2, random_state=42)
 
     return X_train, X_test, y_train, y_test, X_train_disp, X_test_disp, y_train_disp, y_test_disp
 
@@ -147,7 +144,7 @@ def main():
     parser.add_argument(
         "--data",
         action="store",
-        default=os.getcwd() + '/../data/processed/processed_kiva_data.csv',
+        default=os.getcwd() + '/../data/raw/kiva_data.csv',
         help="dataset path",
     )
 
@@ -171,7 +168,8 @@ def main():
     df_raw = load_data(args.data)[:1000]
 
     # preprocess
-    X_train, X_test, y_train, y_test, X_train_disp, X_test_disp, y_train_disp, y_test_disp = preprocessing(df_raw, args)
+    X_train, X_test, y_train, y_test, \
+    X_train_disp, X_test_disp, y_train_disp, y_test_disp = preprocessing(df_raw, args)
 
     # streamlit
     st.sidebar.markdown('# Model')

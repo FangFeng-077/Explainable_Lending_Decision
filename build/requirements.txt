@@ -1,0 +1,12 @@
+
+# To install these Python dependencies, please type:
+# pip install -r requirements.txt
+
+streamlit
+scikit-learn
+shap
+xgboost
+keras
+numpy
+pandas
+tensorflow
