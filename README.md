@@ -1,5 +1,8 @@
 # Explainable_Lending_Decision
 
+A practical and effective approach to explaian the lending decisions machine made
+
+
 ## 1. Overview
 
 ### 1.1. Problem Statement
@@ -14,11 +17,13 @@ In Explainable_Lending_Decison, I have developed a practical and explainable sol
 
 - [**Presentation slides**](bit.ly/explainable_ff_slides) explaining the problem, solution approach and results in 5 mins are available here
 - **Streamlit reports:**
+
   - [**Project Demo**](https://share.streamlit.io/0.36.0-2Qf24/index.html?id=JDjgoPh55HrSxbKvpthCj2M) # need to add new link
 
 ## 3. Running the code on your machine
 
 ### 3.1. Requisites
+
 The code was developed on Python 3.7 and requires the following libraries:
 
 - scikit-learn
@@ -43,6 +48,7 @@ conda activate envlending
 cd /src
 streamlit run main.py
 ```
+
 ## 4. Data
 
 Testing of this methodology was performed using census income data ([Kiva dataset](https://bigml.com/user/ashikiar/gallery/dataset/52290c30035d0729c1004566)):
@@ -54,8 +60,10 @@ Testing of this methodology was performed using census income data ([Kiva datase
 ### 4.1. File structure / data flow in the code
 
 - The raw data files are saved in ```data/raw```
+
 - After processing, the code saves a new csv file containing the processed data in ```data/processed/cleaned_labeled.csv```
 - Follow the instructions above for running the code
+
 
 #### Notes:
 
