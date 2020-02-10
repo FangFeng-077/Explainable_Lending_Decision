@@ -1,5 +1,7 @@
 # Explainable_Lending_Decision
+
 A practical and effective approach to explaian the lending decisions machine made
+
 
 ## 1. Overview
 
@@ -15,51 +17,37 @@ In Explainable_Lending_Decison, I have developed a practical and explainable sol
 
 - [**Presentation slides**](bit.ly/explainable_ff_slides) explaining the problem, solution approach and results in 5 mins are available here
 - **Streamlit reports:**
-  - [**Project Demo**](https://share.streamlit.io/0.36.0-2Qf24/index.html?id=JDjgoPh55HrSxbKvpthCj2M) 
+
+  - [**Project Demo**](https://share.streamlit.io/0.36.0-2Qf24/index.html?id=JDjgoPh55HrSxbKvpthCj2M) # need to add new link
 
 ## 3. Running the code on your machine
 
 ### 3.1. Requisites
 
-- anaconda
-- Python 3.6 
-- SHAP
+The code was developed on Python 3.7 and requires the following libraries:
+
+- scikit-learn
+- keras
+- argparse
+- numpy
 - [Streamlit](https://streamlit.io/secret/docs/index.html)
 
-This repo uses conda's virtual environment for Python 3.
+After cloning the repository you can recreate the environment and install the package dependencies using:
 
-#### Install (mini)conda if not yet installed:
-
-For MacOS:
-```shell
-$ wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
-$ chmod +x miniconda.sh
-$ ./miniconda.sh -b
+```
+conda env create -f build/envlending.yml
+conda activate envlending
 ```
 
-#### Create the virtual environment:
+### User Interface
+- model selection: Random Forest, Xgboost and  ...
+- feature selection
 
-cd into the directory and create the ```debial-ml``` conda virtual environment from environment.yml
-```shell
-$ conda env create -f environment.yml
+### Running the code
 ```
-
-#### Activate the virtual environment:
-
-```shell
-$ source activate debias-ml
+cd /src
+streamlit run main.py
 ```
-
-### 3.2. Running the code
-
-As described above, there is script that can be run to produce Streamlit reports.
-- ```analysis_data.py```
-
-These can be all be run from the command line. To do this cd into the ```source``` directory and call,
-```shell
-$ python analysis_data.py
-```
-The scripts are listed in order of running time.
 
 ## 4. Data
 
@@ -72,17 +60,10 @@ Testing of this methodology was performed using census income data ([Kiva datase
 ### 4.1. File structure / data flow in the code
 
 - The raw data files are saved in ```data/raw```
-- The raw data is converted to csv format and saved as ```data/preprocessed/adult-data.csv```
-- The input parameters are set manually in ```config/params.ini```
-- After processing, the code saves a new csv file containing the processed data in ```data/processed/adult-data.csv```
-- Parameters which are calculated in data processing and required for later calculations are written to the config file ```config/new_params.ini```
 
-### 4.2. Running the code on a new data set
+- After processing, the code saves a new csv file containing the processed data in ```data/processed/cleaned_labeled.csv```
+- Follow the instructions above for running the code
 
-1. Save the csv file in the folder ```data/preprocessed/```
-2. Edit the parameter values in the config file, ```config/params.ini```
-3. Don't worry about overwriting the parameters for ```adult-data.csv```, a copy of the config file is saved as ```adult-data_params.ini```
-4. Follow the instructions above for running the code
 
 #### Notes:
 
