@@ -6,4 +6,4 @@ src/util/__pycache__
 .idea
 .ipynb_checkpoints/
 scripts/.ipynb_checkpoints
-**/__pycache__
+**/*/__pycache__
