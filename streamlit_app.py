@@ -144,7 +144,7 @@ def main():
     parser.add_argument(
         "--data",
         action="store",
-        default=os.getcwd() + '/../data/raw/kiva_data.csv',
+        default=os.getcwd() + '/data/raw/kiva_data.csv',
         help="dataset path",
     )
 
