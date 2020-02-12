@@ -128,7 +128,6 @@ def load_user_data(index, data):
 
 def update_feature(data):
     for k, v in data.items():
-        st.sidebar.write(k, type(v))
         if isinstance(v, str):
             new_v = st.sidebar.selectbox('Select {0}'.format(k), options=[v], index=0)
         else:
