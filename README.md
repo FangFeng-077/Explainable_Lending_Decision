@@ -15,10 +15,10 @@ In Explainable_Lending_Decison, I have developed a practical and explainable sol
 
 ## 2. Resource list
 
-- [**Presentation slides**](bit.ly/explainable_ff_slides) explaining the problem, solution approach and results in 5 mins are available here
+- [**Presentation slides**](https://bit.ly/explainable_ff_slides) explaining the problem, solution approach and results in 5 mins are available here
 - **Streamlit reports:**
 
-  - [**Project Demo**](https://share.streamlit.io/0.36.0-2Qf24/index.html?id=JDjgoPh55HrSxbKvpthCj2M) # need to add new link
+  - [**Project Demo**](https://insight2020a.streamlit.io/FangFeng-077/Explainable_Lending_Decision/) # need to add new link
 
 ## 3. Running the code on your machine
 
