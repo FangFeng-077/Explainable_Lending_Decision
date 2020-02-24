@@ -4,12 +4,8 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self):
-        self.nn = None
-        self.title = 'Neural Network'
-
-    def fit(self, X_train, y_train):
-        n_features = X_train.shape[1]
+    def __init__(self, n_features):
+        # n_features = X_train.shape[1]
         inputs = Input(shape=(n_features,))
         dense1 = Dense(32, activation='relu')(inputs)
         dropout1 = Dropout(0.2)(dense1)
@@ -20,21 +16,20 @@ class NeuralNetwork:
         outputs = Dense(1, activation='sigmoid')(dropout3)
         self.nn = Model(inputs=[inputs], outputs=[outputs])
         self.nn.compile(loss='binary_crossentropy', optimizer='adam')
+        self.title = 'Neural Network'
 
+    def fit(self, X_train, y_train):
         self.nn.fit(X_train.values, y_train.values, epochs=20, verbose=0)
 
     def predict(self, X_test):
-        y_pred = self.nn.predict(X_test)
-        print('nn pred', y_pred)
+        y_pred = self.nn.predict(X_test).ravel()
 
         # Converting predictions to label
-        out = list()
-        for i in range(len(y_pred)):
-            out.append(np.argmax(y_pred[i]))
-        return out
+        labels = (y_pred >= 0.5).astype(np.int)
+        return labels
 
     def get_model(self):
-        return self
+        return self.nn
 
     def get_title(self):
         return self.title

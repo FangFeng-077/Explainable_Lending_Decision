@@ -67,5 +67,8 @@ def display_model_performance_metrics(true_labels, predicted_labels, classes=[1,
 
 
 def predict_labels(model, X, y):
-    y_pred = pd.Series(model.predict(X).ravel(), index=y.index)
+    y_pred = model.predict(X)
+    if isinstance(y_pred, list):
+        y_pred = np.asarray(y_pred)
+    y_pred = pd.Series(y_pred.ravel(), index=y.index)
     return y_pred

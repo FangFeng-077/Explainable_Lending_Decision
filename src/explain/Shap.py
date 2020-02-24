@@ -37,8 +37,8 @@ class Shap:
         shap.force_plot(self.expected_value,
                         self.shap_values[index, :],
                         data,
-                        matplotlib=True,
-                        link='logit')
+                        link='logit',
+                        matplotlib=True)
 
     def plot_forces(self, data, index):
         if self.expected_value is None:
