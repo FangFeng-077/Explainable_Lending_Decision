@@ -18,7 +18,8 @@ In Explainable_Lending_Decison, I have developed a practical and explainable sol
 - [**Presentation slides**](https://bit.ly/explainable_ff_slides) explaining the problem, solution approach and results in 5 mins are available here
 - **Streamlit reports:**
 
-  - [**Project Demo**](https://insight2020a.streamlit.io/FangFeng-077/Explainable_Lending_Decision/) # need to add new link
+  - [**Project Demo**](https://insight2020a.streamlit.io/FangFeng-077/Explainable_Lending_Decision/) 
+  - ![](demo.gif)
 
 ## 3. Running the code on your machine
 
